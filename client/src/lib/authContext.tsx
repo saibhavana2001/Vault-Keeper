@@ -24,13 +24,24 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('vaultkey_session');
+    return stored ? JSON.parse(stored) : null;
+  });
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
 
   const updateActivity = () => {
     setLastActivity(Date.now());
   };
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('vaultkey_session', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('vaultkey_session');
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isVaultUnlocked) return;
